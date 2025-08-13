@@ -2,6 +2,18 @@
 # Typically uses the major version.
 SONAME = 0
 
+# Detect operating system
+UNAME_S := $(shell uname -s)
+
+# Set linker flags based on OS
+ifeq ($(UNAME_S),Linux)
+    SOFLAGS = -soname
+else ifeq ($(UNAME_S),Darwin)
+    SOFLAGS = -install_name
+else
+    SOFLAGS =
+endif
+
 CXXFLAGS+=-g -O2 -Werror
 override CXXFLAGS+=-std=c++0x -Wall -fPIC
 
@@ -32,7 +44,7 @@ to_string.cc: enum-print.py data.hh Makefile
 CLEAN += to_string.cc
 
 libelf++.so.$(SONAME): $(SRCS:.cc=.o)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -shared -Wl,-soname,$@ -o $@ $^
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -shared -Wl,${SOFLAGS},$@ -o $@ $^
 CLEAN += libelf++.so.*
 
 libelf++.so:
